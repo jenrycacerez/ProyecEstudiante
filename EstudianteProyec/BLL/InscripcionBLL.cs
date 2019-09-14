@@ -3,25 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using System.Data.Entity; 
 using EstudianteProyec.Entidades;
+using System.Data.Entity;
+using  EstudianteProyec.DAL.Scripts;
 using System.Linq.Expressions;
-using EstudianteProyec.DAL;
-using EstudianteProyec.DAL.Scripts;
 
-
-namespace EstudianteProyec.BiLL
+namespace EstudianteProyec.BLL
 {
-    public class EstudiantesBILL
+    class InscripcionBLL
     {
-        public static bool Guardar(Estudiante estudiante)
+        public static bool Guardar(InscripcionEstudiante Insc)
         {
             bool paso = false;
             Contexto db = new Contexto();
             try
             {
-                if (db.Estudiante.Add(estudiante) != null)
+                if (db.InscripcionEstudiante.Add(Insc) != null)
                     paso = db.SaveChanges() > 0;
             }
             catch (Exception)
@@ -35,17 +32,17 @@ namespace EstudianteProyec.BiLL
 
             return paso;
 
-
         }
 
-        public static bool Modificar(Estudiante estudiante)
+        public static bool Modificar(InscripcionEstudiante insc)
         {
             bool paso = false;
             Contexto db = new Contexto();
 
             try
             {
-                db.Entry(estudiante).State = EntityState.Modified;
+                db.Entry(insc).State = EntityState.Modified;
+                
                 paso = (db.SaveChanges() > 0);
             }
 
@@ -62,20 +59,19 @@ namespace EstudianteProyec.BiLL
 
 
         }
-
         public static bool Eliminar(int id)
         {
             bool paso = false;
             Contexto db = new Contexto();
             try
             {
-                var eliminar = db.Estudiante.Find(id);
+                var eliminar = db.InscripcionEstudiante.Find(id);
                 db.Entry(eliminar).State = EntityState.Deleted;
 
                 paso = (db.SaveChanges() > 0);
             }
 
-            catch (Exception )
+            catch (Exception)
             {
                 throw;
             }
@@ -86,19 +82,15 @@ namespace EstudianteProyec.BiLL
 
             return paso;
 
-
-
-
-
         }
 
-        public static Estudiante Buscar(int id)
+        public static InscripcionEstudiante Buscar(int id)
         {
             Contexto db = new Contexto();
-            Estudiante estudiante = new Estudiante();
+            InscripcionEstudiante insc = new InscripcionEstudiante();
             try
             {
-                estudiante = db.Estudiante.FirstOrDefault(p=>p.EstudianteID ==id);
+                insc = db.InscripcionEstudiante.FirstOrDefault(p => p.InscripcionId == id);
             }
             catch (Exception ex)
             {
@@ -108,16 +100,17 @@ namespace EstudianteProyec.BiLL
             {
                 db.Dispose();
             }
-            return estudiante;
-            
+            return insc;
+
         }
-        public static List<Estudiante> GetList(Expression<Func<Estudiante, bool>> estudiante)
+
+        public static List<InscripcionEstudiante> GetList(Expression<Func<InscripcionEstudiante, bool>> insc)
         {
-            List<Estudiante> Lista = new List<Estudiante>();
+            List<InscripcionEstudiante> Lista = new List<InscripcionEstudiante>();
             Contexto db = new Contexto();
             try
             {
-                Lista = db.Estudiante.Where(estudiante).ToList();
+                Lista = db.InscripcionEstudiante.Where(insc).ToList();
             }
             catch (Exception)
             {
@@ -132,13 +125,13 @@ namespace EstudianteProyec.BiLL
 
         }
 
-        public static List<Estudiante>Getlist(Expression<Func<Estudiante, bool>> estudiante)
+        public static List<InscripcionEstudiante> Getlist(Expression<Func<InscripcionEstudiante, bool>> Insc)
         {
-            List<Estudiante> Lista = new List<Estudiante>();
+            List<InscripcionEstudiante> Lista = new List<InscripcionEstudiante>();
             Contexto db = new Contexto();
             try
             {
-                Lista = db.Estudiante.Where(estudiante).ToList();
+                Lista = db.InscripcionEstudiante.Where(Insc).ToList();
             }
             catch (Exception)
             {
@@ -149,11 +142,7 @@ namespace EstudianteProyec.BiLL
                 db.Dispose();
             }
             return Lista;
+
         }
     }
 }
-
-       
-
-    
-

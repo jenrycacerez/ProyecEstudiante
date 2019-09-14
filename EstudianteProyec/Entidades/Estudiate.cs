@@ -20,7 +20,8 @@ namespace EstudianteProyec.Entidades
         public DateTime FechaNacimiento  { get; set; }
         
         public int Sexo { get; set; }
-        public int Balance { get; set; }
+        public decimal Balance { get; set; }
+        public object  Celular { get; internal set; }
 
         public Estudiante()
         {

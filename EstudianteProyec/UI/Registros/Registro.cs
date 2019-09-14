@@ -7,8 +7,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using EstudianteProyec.BiLL;
 using EstudianteProyec.DAL;
-
+using EstudianteProyec.Entidades;
 
 
 
@@ -16,14 +17,16 @@ namespace EstudianteProyec.UI.Registros
 {
     public partial class Registro : Form
     {
+        private object estudianteBll;
+
         public Registro()
         {
             InitializeComponent();
         }
         public void limpiar()
         {
-            EstudianteId.evalue = 0;
-            Matricula.Textbox.text = string.Empty;
+            EstudianteId.Value = 0;
+            MatriculaTextBox.Text = string.Empty;
             NombreTextbox.Text = string.Empty;
             ApellidoTextbox.Text = string.Empty;
             CedulaTextbox.Text = string.Empty;
@@ -31,9 +34,11 @@ namespace EstudianteProyec.UI.Registros
             CelularTextbox.Text = string.Empty;
             EmailTextbox.Text = string.Empty;
             FechaNacimientoDateTimePicker.Value = DateTime.Now;
+            SexoComboBox.Text = string.Empty;
+            BalanceTextBox.Text = string.Empty;
+            MyerrorProvider.Clear();
 
-
-
+            ///crear sexo con nombre  SEXOTextbox ese es el  nombre del boton
         }
 
 
@@ -45,13 +50,42 @@ namespace EstudianteProyec.UI.Registros
         private Estudiante LlenaClase()
         {
             Estudiante estudiante = new Estudiante();
-            estudiante.PersonaId = Convert.ToInt32(IDNumericUpDown.Value);
-            estudiante.Nombre = NombreTextBox.Text;
-            estudiante.Cedula = CedulamaskedTextBox.Text;
-            estudiante.Direccion = DireccionTextBox.Text;
+            estudiante.EstudianteID = Convert.ToInt32(EstudianteId.Value);
+            estudiante.Matricula = MatriculaTextBox.Text;
+            estudiante.Nombre = NombreTextbox.Text;
+            estudiante.Apellido = ApellidoTextbox.Text;
+            estudiante.Cedula = CedulaTextbox.Text;
+            estudiante.Telefono = TelefonoTextbox.Text;
+            estudiante.Celular = CelularTextbox.Text;
+            estudiante.Email = EmailTextbox.Text;
             estudiante.FechaNacimiento = FechaNacimientoDateTimePicker.Value;
+            estudiante.Sexo = SexoComboBox.SelectedIndex;
+            estudiante.Balance = Convert.ToDecimal(BalanceTextBox.Text);
 
-            estudiante.Telefonos = this.Detalle;
+           
+
+            return estudiante;
+        }
+
+        private Estudiante LlenaClase(Estudiante estudiante)
+        {
+
+            EstudianteId.Value = estudiante.EstudianteID;
+            MatriculaTextBox.Text = estudiante.Matricula;
+            NombreTextbox.Text = estudiante.Nombre;
+            ApellidoTextbox.Text = estudiante.Apellido;
+            CedulaTextbox.Text = estudiante.Cedula;
+            TelefonoTextbox.Text = estudiante.Telefono;
+            if (estudiante.Celular != null)
+            {
+                CelularTextbox.Text = estudiante.Celular.ToString();
+            }
+            EmailTextbox.Text = estudiante.Email;
+            FechaNacimientoDateTimePicker.Value = estudiante.FechaNacimiento;
+            SexoComboBox.SelectedIndex = (int)estudiante.Sexo;
+            BalanceTextBox.Text = estudiante.Balance.ToString("N2");
+
+            //estudiante.Telefono = this.TelefonoTextbox.Text; 
 
             return estudiante;
         }
@@ -85,11 +119,11 @@ namespace EstudianteProyec.UI.Registros
                 return;
 
             estudiante = LlenaClase();
-            Limpiar();
+            
 
             //Determinar si es guardar o modificar
-            if (IDNumericUpDown.Value == 0)
-                paso = EstudianteBll.Guardar(estudiante);
+            if (EstudianteId.Value == 0)
+                paso = EstudiantesBILL.Guardar(estudiante);
             else
             {
                 if (!ExisteEnLaBaseDeDatos())
@@ -97,9 +131,27 @@ namespace EstudianteProyec.UI.Registros
                     MessageBox.Show("No se puede modificar una persona que no existe", "Fallo", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
-                paso = estudianteBll.Modificar(estudiante);
+              
+              
+         
+
+                estudiante = new Estudiante();
+                estudiante = EstudiantesBILL.Buscar(Convert.ToInt32(EstudianteId.Value));
+                estudiante.Matricula = MatriculaTextBox.Text;
+                estudiante.Nombre = NombreTextbox.Text;
+                estudiante.Apellido = ApellidoTextbox.Text;
+                estudiante.Cedula = CedulaTextbox.Text;
+                estudiante.Telefono = TelefonoTextbox.Text;
+                estudiante.Celular = CelularTextbox.Text;
+                estudiante.Email = EmailTextbox.Text;
+                estudiante.FechaNacimiento = FechaNacimientoDateTimePicker.Value;
+                estudiante.Sexo = SexoComboBox.SelectedIndex;
+                estudiante.Balance = Convert.ToDecimal(BalanceTextBox.Text);
+             
+                paso = EstudiantesBILL.Modificar(estudiante);
             }
 
+            limpiar();
             //Informar el resultado
             if (paso)
                 MessageBox.Show("Guardado!!", "Exito", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -109,7 +161,7 @@ namespace EstudianteProyec.UI.Registros
         }
         private bool ExisteEnLaBaseDeDatos()
         {
-            Estudiante persona = EstudianteBll.Buscar((int)IDNumericUpDown.Value);
+            Estudiante persona = EstudiantesBILL.Buscar((int)EstudianteId.Value);
 
             return (persona != null);
         }
@@ -117,56 +169,80 @@ namespace EstudianteProyec.UI.Registros
         private bool Validar()
         {
             bool paso = true;
-            MyErrorProvider.Clear();
-
-            if (NombreTextBox.Text == string.Empty)
-            {
-                MyErrorProvider.SetError(NombreTextBox, "El campo Nombre no puede estar vacio");
-                NombreTextBox.Focus();
-                paso = false;
-            }
-
-            if (ApellidoTextBox.Text == string.Empty)
-            {
-                MyErrorProvider.SetError(ApellidoTextBox, "El campo Nombre no puede estar vacio");
-                ApellidoTextBox.Focus();
-                paso = false;
-            }
+            MyerrorProvider.Clear();
 
             if (string.IsNullOrWhiteSpace(MatriculaTextBox.Text))
             {
-                MyErrorProvider.SetError(MatriculaTextBox, "El campo Direccion no puede estar vacio");
+                MyerrorProvider.SetError(MatriculaTextBox, "El campo Direccion no puede estar vacio");
                 MatriculaTextBox.Focus();
                 paso = false;
             }
 
-            if (string.IsNullOrWhiteSpace(CedulamaskedTextBox.Text.Replace("-", "")))
+            if (NombreTextbox.Text == string.Empty)
             {
-                MyErrorProvider.SetError(CedulamaskedTextBox, "El campo Cedula no puede estar vacio");
-                CedulamaskedTextBox.Focus();
+                MyerrorProvider.SetError(NombreTextbox, "El campo Nombre no puede estar vacio");
+                NombreTextbox.Focus();
                 paso = false;
             }
 
-            if (string.IsNullOrWhiteSpace(CelularmaskedTextBox.Text.Replace("-", "")))
+            if (ApellidoTextbox.Text == string.Empty)
             {
-                MyErrorProvider.SetError(CelularmaskedTextBox, "El campo Celular no puede estar vacio");
-                CelularmaskedTextBox.Focus();
+                MyerrorProvider.SetError(ApellidoTextbox, "El campo Nombre no puede estar vacio");
+                ApellidoTextbox.Focus();
                 paso = false;
             }
 
-            if (string.IsNullOrWhiteSpace(SexomaskedTextBox.Text.Replace("-", "")))
+
+
+            if (string.IsNullOrWhiteSpace(CedulaTextbox.Text.Replace("-", "")))
             {
-                MyErrorProvider.SetError(SexomaskedTextBox, "El campo sexo no puede estar vacio");
-                SexomaskedTextBox.Focus();
+                MyerrorProvider.SetError(CedulaTextbox, "El campo Cedula no puede estar vacio");
+                CedulaTextbox.Focus();
                 paso = false;
             }
 
-            if (this.Detalle.Count == 0)
+            if (string.IsNullOrWhiteSpace(TelefonoTextbox.Text.Replace("-", "")))
             {
-                MyErrorProvider.SetError(detalleDataGridView, "Debe agregar algun telefono");
-                TelefonomaskedTextBox.Focus();
+                MyerrorProvider.SetError(TelefonoTextbox, "El campo Telefono no puede estar vacio");
+                TelefonoTextbox.Focus();
                 paso = false;
             }
+
+            if (string.IsNullOrWhiteSpace(CelularTextbox.Text.Replace("-", "")))
+            {
+                MyerrorProvider.SetError(CelularTextbox, "El campo Celular no puede estar vacio");
+                CelularTextbox.Focus();
+                paso = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(EmailTextbox.Text))
+            {
+                MyerrorProvider.SetError(EmailTextbox, "El campo Email no puede estar vacio");
+                EmailTextbox.Focus();
+                paso = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(FechaNacimientoDateTimePicker.Text))
+            {
+                MyerrorProvider.SetError(FechaNacimientoDateTimePicker, "El campo Fecha de nacimiento no puede estar vacio");
+                FechaNacimientoDateTimePicker.Focus();
+                paso = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(SexoComboBox.Text))
+            {
+                MyerrorProvider.SetError(SexoComboBox, "El campo Sexo no puede estar vacio");
+                SexoComboBox.Focus();
+                paso = false;
+            }
+
+            if (string.IsNullOrWhiteSpace(BalanceTextBox.Text))
+            {
+                MyerrorProvider.SetError(BalanceTextBox, "El campo Balance no puede estar vacio");
+                BalanceTextBox.Focus();
+                paso = false;
+            }
+
 
             return paso;
         }
@@ -175,16 +251,16 @@ namespace EstudianteProyec.UI.Registros
         {
             int id;
             Estudiante estudiante = new Estudiante();
-            int.TryParse(IDNumericUpDown.Text, out id);
+            int.TryParse(EstudianteId.Text, out id);
 
-            Limpiar();
+            limpiar();
 
-            estudiante = EstudianteBll.Buscar(id);
+            estudiante = EstudiantesBILL.Buscar(id);
 
             if (estudiante != null)
             {
                 MessageBox.Show("Persona Encontrada");
-                LlenaCampo(estudiante);
+                LlenaClase(estudiante);
             }
             else
             {
@@ -194,14 +270,14 @@ namespace EstudianteProyec.UI.Registros
 
         private void Eliminarbutton2_Click(object sender, EventArgs e)
         {
-            MyErrorProvider.Clear();
+            MyerrorProvider.Clear();
             int id;
-            int.TryParse(IDNumericUpDown.Text, out id);
-            Limpiar();
-            if (PersonasBll.Eliminar(id))
+            int.TryParse(EstudianteId.Text, out id);
+            limpiar();
+            if (EstudiantesBILL.Eliminar(id))
                 MessageBox.Show("Eliminado");
             else
-                MyErrorProvider.SetError(IDNumericUpDown, "No se puede eliminar una persona que no existe");
+                MyerrorProvider.SetError(EstudianteId, "No se puede eliminar una persona que no existe");
         }
     }
 }
